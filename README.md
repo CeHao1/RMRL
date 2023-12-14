@@ -2,8 +2,14 @@
 residual model reinforcement learning
 
 
-# Training
-python toy/rl/pick_baseline.py --log-dir log_ppo1
 
-# Evaluation
-python toy/rl/pick_baseline.py --eval --model-path=logs_ppo1/best_model
+python main.py --log-dir log_ppo_test --mode train 
+
+python main.py --log-dir log_ppo_test --mode eval 
+
+```
+
+--action-bias
+--residual
+
+```
