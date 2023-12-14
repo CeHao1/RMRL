@@ -57,10 +57,10 @@ class ResidualModelWrapper(gym.Wrapper):
         ob, rew, terminated, truncated, info = super().step(action)
 
         # debug
-        obs0 = self.get_obs()
-        info0 = self.get_info(obs=obs0)
-        reward0 = self.get_reward(obs=obs0, action=action, info=info0)
-        terminated0 = self.get_done(obs=obs0, info=info0)
+        # obs0 = self.get_obs()
+        # info0 = self.get_info(obs=obs0)
+        # reward0 = self.get_reward(obs=obs0, action=action, info=info0)
+        # terminated0 = self.get_done(obs=obs0, info=info0)
 
         # convert to torch tensor
         old_ob_tensor = torch.tensor([old_ob], dtype=torch.float32)
@@ -82,5 +82,6 @@ class ResidualModelWrapper(gym.Wrapper):
         reward = self.get_reward(obs=obs, action=action, info=info)
         terminated = self.get_done(obs=obs, info=info)
 
+        print('info', info['elapsed_steps'])
         return obs, reward, terminated, truncated, info 
 

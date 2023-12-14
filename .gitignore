@@ -1,5 +1,7 @@
 .vscode
 log*
+*.pth
+residual*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

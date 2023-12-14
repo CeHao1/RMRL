@@ -71,7 +71,7 @@ def main(args):
                 env = ActionBiasWrapper(env, bias=args.action_bias)  
             if args.residual:     
                 # =============== create residual model ==================
-                residual_model = load_checkpoint('residual_model_checkpoints/checkpoint_episode_68.pth', env)
+                residual_model = load_checkpoint('residual_model_checkpoints/checkpoint_episode_last.pth', env)
                 env = ResidualModelWrapper(env, residual_model)                                                                              
             return env
 

@@ -76,7 +76,7 @@ def create_residual_model(env):
 
 def learn_residual_model(env, policy):
     # Model, optimizer, and replay buffer instantiation
-    model, optimizer = create_residual_model(env)
+    model = create_residual_model(env)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     replay_buffer = ReplayBuffer(capacity)
 
@@ -108,7 +108,7 @@ def learn_residual_model(env, policy):
 
             episode_starts = dones
 
-            residual_obs= next_observation - info['ob_nominal']
+            residual_obs = next_observation - info['ob_nominal']
 
             # Store in replay buffer
             replay_buffer.push(torch.tensor([observation], dtype=torch.float32), 
@@ -145,6 +145,9 @@ def learn_residual_model(env, policy):
         os.makedirs(checkpoint_dir, exist_ok=True)
         if episode % save_every == 0:
             checkpoint_path = os.path.join(checkpoint_dir, f'checkpoint_episode_{episode}.pth')
+            save_checkpoint(model, optimizer, episode, filename=checkpoint_path)
+
+            checkpoint_path = os.path.join(checkpoint_dir, f'checkpoint_episode_last.pth')
             save_checkpoint(model, optimizer, episode, filename=checkpoint_path)
             print(f"Checkpoint saved at episode {episode}")
 
