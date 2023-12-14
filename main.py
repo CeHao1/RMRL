@@ -43,7 +43,6 @@ def main(args):
         env_id: str,
         max_episode_steps: int = None,
         record_dir: str = None,
-        action_bias: float = 0,
         residual_model = None,
 
     ):
@@ -66,9 +65,9 @@ def main(args):
             if record_dir is not None:
                 env = SuccessInfoWrapper(env)
                 env = RecordEpisode(env, record_dir, info_on_video=True)
-            if action_bias != 0:
-                env = ActionBiasWrapper(env, bias=action_bias)  
-            if residual_model is not None:     
+            if args.action_bias != 0:
+                env = ActionBiasWrapper(env, bias=args.action_bias)  
+            if args.residual:     
                 env = ResidualModelWrapper(env, residual_model)                                                                              
             return env
 
@@ -81,9 +80,6 @@ def main(args):
         record_dir = osp.join(log_dir, "videos/residual_train")
     elif mode == EVAL:
         record_dir = osp.join(log_dir, "videos/eval")
-
-    # if args.residual:
-
 
     # =============== create envs ==================
     # nominal eval env
@@ -109,6 +105,8 @@ def main(args):
 
     elif mode == EVAL:
         env = eval_env
+    elif mode == RESIDUAL_TRAIN:
+        env = eval_env
 
     # =============== create policy model ==================
     # Define the policy configuration and algorithm configuration
@@ -131,7 +129,7 @@ def main(args):
         target_kl=0.05,
     )
 
-    if mode == EVAL:
+    if mode == EVAL or mode == RESIDUAL_TRAIN:
         model_path = args.model_path
         if model_path is None:
             model_path = osp.join(log_dir, "latest_model")
@@ -148,7 +146,8 @@ def main(args):
     elif mode == EVAL:
         eval(args, model, eval_env)
     elif mode == RESIDUAL_TRAIN:
-        pass
+        from toy.rl.residual_model import learn_residual_model
+        learn_residual_model(env, model)
     
 
     # close all envs
@@ -195,6 +194,9 @@ def eval(args, model, eval_env):
     success = np.array(ep_lens) < 200
     success_rate = success.mean()
     print("Success Rate:", success_rate)
+
+
+
 
 if __name__ == "__main__":
     main(parse_args())

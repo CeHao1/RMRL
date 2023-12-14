@@ -9,7 +9,7 @@ def parse_args():
         "-n",
         "--n-envs",
         type=int,
-        default=24,
+        default=30,
         help="number of parallel envs to run. Note that increasing this does not increase rollout size",
     )
     parser.add_argument(
@@ -34,7 +34,7 @@ def parse_args():
     parser.add_argument(
         "--total-timesteps",
         type=int,
-        default=500_000,
+        default=1_000_000,
         help="Total timesteps for training",
     )
     parser.add_argument(
@@ -47,7 +47,7 @@ def parse_args():
     parser.add_argument(
         "--mode", type=str, default="train", choices=["train", "eval", "residual_train"]
     )
-    
+
     parser.add_argument(
         "--action-bias",
         type=float,
