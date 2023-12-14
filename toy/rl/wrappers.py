@@ -1,5 +1,6 @@
 import gymnasium as gym
 import numpy as np
+import torch
 
 class ContinuousTaskWrapper(gym.Wrapper):
     def __init__(self, env) -> None:
@@ -47,6 +48,7 @@ class ResidualModelWrapper(gym.Wrapper):
     def __init__(self, env, model) -> None:
         super().__init__(env)
         self.model = model
+        print("========= residual model wrapper ===========")
 
     def step(self, action):
         
@@ -54,11 +56,24 @@ class ResidualModelWrapper(gym.Wrapper):
         old_ob = self.get_obs()
         ob, rew, terminated, truncated, info = super().step(action)
 
-        # residual model
-        residual_state = self.model(old_ob, action, ob)
+        # debug
+        obs0 = self.get_obs()
+        info0 = self.get_info(obs=obs0)
+        reward0 = self.get_reward(obs=obs0, action=action, info=info0)
+        terminated0 = self.get_done(obs=obs0, info=info0)
 
-        state = self.get_state()
-        compensated_state = state + residual_state
+        # convert to torch tensor
+        old_ob_tensor = torch.tensor([old_ob], dtype=torch.float32)
+        old_action_tensor = torch.tensor([action], dtype=torch.float32)
+
+        # residual model
+        residual_obs = self.model(old_ob_tensor, old_action_tensor)
+        residual_obs = residual_obs.cpu().detach().numpy()
+        obs_dim = self.observation_space.shape[0]
+
+        compensated_state = self.get_state()
+        compensated_state[0:obs_dim] += residual_obs[0]
+
         self.set_state(compensated_state)
 
         # return
@@ -66,5 +81,6 @@ class ResidualModelWrapper(gym.Wrapper):
         info = self.get_info(obs=obs)
         reward = self.get_reward(obs=obs, action=action, info=info)
         terminated = self.get_done(obs=obs, info=info)
-        return obs, reward, terminated, False, info 
+
+        return obs, reward, terminated, truncated, info 
 

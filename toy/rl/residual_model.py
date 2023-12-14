@@ -32,14 +32,15 @@ def save_checkpoint(model, optimizer, epoch, filename="model_checkpoint.pth"):
     }
     torch.save(checkpoint, filename)
 
-def load_checkpoint(model, optimizer, filename):
+def load_checkpoint(filename, env):
+    model = create_residual_model(env)
     checkpoint = torch.load(filename)
 
     model.load_state_dict(checkpoint['model_state_dict'])
-    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    epoch = checkpoint['epoch']
+    # optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    # epoch = checkpoint['epoch']
 
-    return model, optimizer, epoch
+    return model
 
 # Replay Buffer
 class ReplayBuffer:
@@ -66,12 +67,16 @@ batch_size = 64
 capacity = 10000
 num_episodes = 500
 
-
-def learn_residual_model(env, policy):
-    # Model, optimizer, and replay buffer instantiation
+def create_residual_model(env):
     observation_space = env.observation_space.shape[0]
     action_space = env.action_space.shape[0]
     model = DynamicModel(observation_space, action_space)
+    
+    return model
+
+def learn_residual_model(env, policy):
+    # Model, optimizer, and replay buffer instantiation
+    model, optimizer = create_residual_model(env)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     replay_buffer = ReplayBuffer(capacity)
 
@@ -90,7 +95,7 @@ def learn_residual_model(env, policy):
                 observations,  # type: ignore[arg-type]
                 state=states,
                 episode_start=episode_starts,
-                deterministic=True,
+                deterministic=False,
             )
 
             new_observations, rewards, dones, infos = env.step(actions)
@@ -100,6 +105,8 @@ def learn_residual_model(env, policy):
             action = actions[0]
             done = dones[0]
             info = infos[0]
+
+            episode_starts = dones
 
             residual_obs= next_observation - info['ob_nominal']
 
@@ -131,6 +138,16 @@ def learn_residual_model(env, policy):
                 num_steps += 1
 
             observations = new_observations  
+
+        #  save checkpoint
+        save_every = 2
+        checkpoint_dir = 'residual_model_checkpoints'
+        os.makedirs(checkpoint_dir, exist_ok=True)
+        if episode % save_every == 0:
+            checkpoint_path = os.path.join(checkpoint_dir, f'checkpoint_episode_{episode}.pth')
+            save_checkpoint(model, optimizer, episode, filename=checkpoint_path)
+            print(f"Checkpoint saved at episode {episode}")
+
 
         # Print average loss
         average_loss = total_loss / num_steps if num_steps > 0 else 0

@@ -6,7 +6,7 @@ import gymnasium as gym
 import numpy as np
 from stable_baselines3 import PPO, SAC
 from stable_baselines3.common.callbacks import CheckpointCallback, EvalCallback
-from stable_baselines3.common.evaluation import evaluate_policy
+# from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecMonitor
 
@@ -15,6 +15,8 @@ from mani_skill2.utils.wrappers import RecordEpisode
 
 from toy.rl.parse import parse_args
 from toy.rl.wrappers import *
+from toy.rl.evaluation import evaluate_policy
+from toy.rl.residual_model import learn_residual_model, load_checkpoint
 
 # Defines a continuous, infinite horizon, task where terminated is always False
 # unless a timelimit is reached.
@@ -68,6 +70,8 @@ def main(args):
             if args.action_bias != 0:
                 env = ActionBiasWrapper(env, bias=args.action_bias)  
             if args.residual:     
+                # =============== create residual model ==================
+                residual_model = load_checkpoint('residual_model_checkpoints/checkpoint_episode_68.pth', env)
                 env = ResidualModelWrapper(env, residual_model)                                                                              
             return env
 
@@ -108,6 +112,7 @@ def main(args):
     elif mode == RESIDUAL_TRAIN:
         env = eval_env
 
+
     # =============== create policy model ==================
     # Define the policy configuration and algorithm configuration
     policy_kwargs = dict(net_arch=[256, 256])
@@ -146,7 +151,7 @@ def main(args):
     elif mode == EVAL:
         eval(args, model, eval_env)
     elif mode == RESIDUAL_TRAIN:
-        from toy.rl.residual_model import learn_residual_model
+        
         learn_residual_model(env, model)
     
 
@@ -191,7 +196,7 @@ def eval(args, model, eval_env):
     )
     print("Returns", returns)
     print("Episode Lengths", ep_lens)
-    success = np.array(ep_lens) < 200
+    success = np.array(ep_lens) < 100
     success_rate = success.mean()
     print("Success Rate:", success_rate)
 
