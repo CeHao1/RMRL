@@ -30,7 +30,7 @@ class ActionBiasWrapper(gym.Wrapper):
 
     def step(self, action):
         biased_action = action.copy()
-        biased_action[0:3] += self.bias  
+        biased_action[0] += self.bias  
 
         # nominal model
         old_state = self.get_state()
@@ -50,17 +50,14 @@ class ResidualModelWrapper(gym.Wrapper):
         self.model = model
         print("========= residual model wrapper ===========")
 
+    # '''
     def step(self, action):
         
         # nominal model
         old_ob = self.get_obs()
         ob, rew, terminated, truncated, info = super().step(action)
 
-        # debug
-        # obs0 = self.get_obs()
-        # info0 = self.get_info(obs=obs0)
-        # reward0 = self.get_reward(obs=obs0, action=action, info=info0)
-        # terminated0 = self.get_done(obs=obs0, info=info0)
+
 
         # convert to torch tensor
         old_ob_tensor = torch.tensor([old_ob], dtype=torch.float32)
@@ -74,14 +71,22 @@ class ResidualModelWrapper(gym.Wrapper):
         compensated_state = self.get_state()
         compensated_state[0:obs_dim] += residual_obs[0]
 
-        self.set_state(compensated_state)
+        try:
+            # self.set_state(compensated_state)
 
-        # return
-        obs = self.get_obs()
-        info = self.get_info(obs=obs)
-        reward = self.get_reward(obs=obs, action=action, info=info)
-        terminated = self.get_done(obs=obs, info=info)
+            # return
+            obs = self.get_obs()
+            info = self.get_info(obs=obs)
+            reward = self.get_reward(obs=obs, action=action, info=info)
+            terminated = self.get_done(obs=obs, info=info)
+        except:
+            print('========= residual model wrapper failed ===========')
+            obs = ob
+            info = info
+            reward = rew
+            terminated = True
 
-        print('info', info['elapsed_steps'])
+        # print('info', info['elapsed_steps'])
         return obs, reward, terminated, truncated, info 
 
+    # '''

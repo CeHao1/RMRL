@@ -79,16 +79,27 @@ def main(args):
 
     #  =============== create video recording directory ==================
     if mode == TRAIN:
-        record_dir = osp.join(log_dir, "videos/train")
+        if args.residual:
+            record_dir = osp.join(log_dir, "videos/train_residual")
+        else:
+            record_dir = osp.join(log_dir, "videos/train")
     elif mode == RESIDUAL_TRAIN:
-        record_dir = osp.join(log_dir, "videos/residual_train")
+        record_dir = osp.join(log_dir, "videos/residual_model")
     elif mode == EVAL:
-        record_dir = osp.join(log_dir, "videos/eval")
+        if args.residual:
+            record_dir = osp.join(log_dir, "videos/eval_residual")
+        else:
+            record_dir = osp.join(log_dir, "videos/eval")
+
+    if args.action_bias != 0:
+        max_episode_steps = 400
+    else:
+        max_episode_steps = 200
 
     # =============== create envs ==================
     # nominal eval env
     eval_env = SubprocVecEnv(
-        [make_env(env_id, record_dir=record_dir) for _ in range(1)]
+        [make_env(env_id, record_dir=record_dir, max_episode_steps=max_episode_steps) for _ in range(1)]
     )
     eval_env = VecMonitor(eval_env)  # attach this so SB3 can log reward metrics
     eval_env.seed(args.seed)
@@ -196,7 +207,7 @@ def eval(args, model, eval_env):
     )
     print("Returns", returns)
     print("Episode Lengths", ep_lens)
-    success = np.array(ep_lens) < 100
+    success = np.array(ep_lens) < 200
     success_rate = success.mean()
     print("Success Rate:", success_rate)
 

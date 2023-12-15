@@ -65,7 +65,7 @@ class ReplayBuffer:
 learning_rate = 0.001
 batch_size = 64
 capacity = 10000
-num_episodes = 500
+num_episodes = 200
 
 def create_residual_model(env):
     observation_space = env.observation_space.shape[0]
@@ -149,7 +149,7 @@ def learn_residual_model(env, policy):
 
             checkpoint_path = os.path.join(checkpoint_dir, f'checkpoint_episode_last.pth')
             save_checkpoint(model, optimizer, episode, filename=checkpoint_path)
-            print(f"Checkpoint saved at episode {episode}")
+            # print(f"Checkpoint saved at episode {episode}")
 
 
         # Print average loss
