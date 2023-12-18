@@ -116,26 +116,27 @@ def learn_residual_model(env, policy):
                                torch.tensor([residual_obs], dtype=torch.float32)) # target is residual obs
 
             if len(replay_buffer) > batch_size:
-                # Sample a batch and update the model
-                transitions = replay_buffer.sample(batch_size)
-                batch_obs, batch_act, batch_next_obs = zip(*transitions)
+                for t in range(16):
+                    # Sample a batch and update the model
+                    transitions = replay_buffer.sample(batch_size)
+                    batch_obs, batch_act, batch_next_obs = zip(*transitions)
 
-                batch_obs = torch.cat(batch_obs)
-                batch_act = torch.cat(batch_act)
-                batch_next_obs = torch.cat(batch_next_obs)
+                    batch_obs = torch.cat(batch_obs)
+                    batch_act = torch.cat(batch_act)
+                    batch_next_obs = torch.cat(batch_next_obs)
 
-                # Compute loss
-                predicted_next_obs = model(batch_obs, batch_act)
-                loss = nn.MSELoss()(predicted_next_obs, batch_next_obs)
+                    # Compute loss
+                    predicted_next_obs = model(batch_obs, batch_act)
+                    loss = nn.MSELoss()(predicted_next_obs, batch_next_obs)
 
-                # Optimize the model
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
+                    # Optimize the model
+                    optimizer.zero_grad()
+                    loss.backward()
+                    optimizer.step()
 
-                # store loss
-                total_loss += loss.item()
-                num_steps += 1
+                    # store loss
+                    total_loss += loss.item()
+                    num_steps += 1
 
             observations = new_observations  
 

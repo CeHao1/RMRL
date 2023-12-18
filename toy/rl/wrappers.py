@@ -57,8 +57,6 @@ class ResidualModelWrapper(gym.Wrapper):
         old_ob = self.get_obs()
         ob, rew, terminated, truncated, info = super().step(action)
 
-
-
         # convert to torch tensor
         old_ob_tensor = torch.tensor([old_ob], dtype=torch.float32)
         old_action_tensor = torch.tensor([action], dtype=torch.float32)
@@ -69,7 +67,8 @@ class ResidualModelWrapper(gym.Wrapper):
         obs_dim = self.observation_space.shape[0]
 
         compensated_state = self.get_state()
-        compensated_state[0:obs_dim] += residual_obs[0]
+        # compensated_state[0:obs_dim] += residual_obs[0]
+        compensated_state += residual_obs[0]
 
         try:
             # self.set_state(compensated_state)
@@ -77,6 +76,7 @@ class ResidualModelWrapper(gym.Wrapper):
             # return
             obs = self.get_obs()
             info = self.get_info(obs=obs)
+            info["is_success"] = info["success"]
             reward = self.get_reward(obs=obs, action=action, info=info)
             terminated = self.get_done(obs=obs, info=info)
         except:

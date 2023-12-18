@@ -5,7 +5,7 @@ residual model reinforcement learning
 
 python main.py --log-dir log_ppo_base10 --mode train 
 
-python main.py --log-dir log_ppo_base3 --mode eval --action-bias 0.4
+python main.py --log-dir log_ppo_base12 --mode eval --action-bias 0.1
 
 python main.py --log-dir log_ppo_base3 --mode residual_train --action-bias 0.5 
 
@@ -17,7 +17,7 @@ python main.py --log-dir log_ppo_base3 --mode residual_train --action-bias 0.5
 ```
 
 1. train base policy 
-python main.py --log-dir log_ppo_base12 --mode train --total-timesteps 6_000_000
+python main.py --log-dir log_ppo_base15 --mode train --total-timesteps 6_000_000
 
 
 2. eval in bias

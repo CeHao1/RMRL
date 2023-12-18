@@ -46,6 +46,7 @@ def main(args):
         max_episode_steps: int = None,
         record_dir: str = None,
         residual_model = None,
+        coninuous_task = False,
 
     ):
         def _init() -> gym.Env:
@@ -62,7 +63,9 @@ def main(args):
             )
             # For training, we regard the task as a continuous task with infinite horizon.
             # you can use the ContinuousTaskWrapper here for that
-            if max_episode_steps is not None:
+            # if max_episode_steps is not None:
+
+            if coninuous_task:
                 env = ContinuousTaskWrapper(env)
             if record_dir is not None:
                 env = SuccessInfoWrapper(env)
@@ -83,8 +86,14 @@ def main(args):
             record_dir = osp.join(log_dir, "videos/train_residual")
         else:
             record_dir = osp.join(log_dir, "videos/train")
+
+        
+
     elif mode == RESIDUAL_TRAIN:
         record_dir = osp.join(log_dir, "videos/residual_model")
+
+    
+
     elif mode == EVAL:
         if args.residual:
             record_dir = osp.join(log_dir, "videos/eval_residual")
@@ -92,14 +101,17 @@ def main(args):
             record_dir = osp.join(log_dir, "videos/eval")
 
     if args.action_bias != 0:
-        max_episode_steps = 400
+        train_max_episode_steps = 100
+        eval_max_episode_steps = 400
     else:
-        max_episode_steps = 200
+        train_max_episode_steps = 50
+        eval_max_episode_steps = 200
+    
 
     # =============== create envs ==================
     # nominal eval env
     eval_env = SubprocVecEnv(
-        [make_env(env_id, record_dir=record_dir, max_episode_steps=max_episode_steps) for _ in range(1)]
+        [make_env(env_id, record_dir=record_dir, max_episode_steps=eval_max_episode_steps) for _ in range(1)]
     )
     eval_env = VecMonitor(eval_env)  # attach this so SB3 can log reward metrics
     eval_env.seed(args.seed)
@@ -110,7 +122,7 @@ def main(args):
         # Create vectorized environments for training
         env = SubprocVecEnv(
             [
-                make_env(env_id, max_episode_steps=max_episode_steps)
+                make_env(env_id, max_episode_steps=train_max_episode_steps, coninuous_task=True)
                 for _ in range(num_envs)
             ]
         )
