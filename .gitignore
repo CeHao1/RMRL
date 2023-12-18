@@ -2,6 +2,7 @@
 log*
 *.pth
 residual*
+data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
