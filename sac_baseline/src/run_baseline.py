@@ -1,10 +1,9 @@
 # Import required packages
-import argparse
 import os.path as osp
 
 import gymnasium as gym
 import numpy as np
-from stable_baselines3 import PPO
+from stable_baselines3 import PPO, SAC
 from stable_baselines3.common.callbacks import CheckpointCallback, EvalCallback
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.utils import set_random_seed
@@ -13,72 +12,8 @@ from stable_baselines3.common.vec_env import SubprocVecEnv, VecMonitor
 import mani_skill2.envs
 from mani_skill2.utils.wrappers import RecordEpisode
 
-
-# Defines a continuous, infinite horizon, task where terminated is always False
-# unless a timelimit is reached.
-class ContinuousTaskWrapper(gym.Wrapper):
-    def __init__(self, env) -> None:
-        super().__init__(env)
-
-    def reset(self, *args, **kwargs):
-        return super().reset(*args, **kwargs)
-
-    def step(self, action):
-        ob, rew, terminated, truncated, info = super().step(action)
-        return ob, rew, False, truncated, info
-
-
-# A simple wrapper that adds a is_success key which SB3 tracks
-class SuccessInfoWrapper(gym.Wrapper):
-    def step(self, action):
-        ob, rew, terminated, truncated, info = super().step(action)
-        info["is_success"] = info["success"]
-        return ob, rew, terminated, truncated, info
-
-
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Simple script demonstrating how to use Stable Baselines 3 with ManiSkill2 and RGBD Observations"
-    )
-    parser.add_argument("-e", "--env-id", type=str, default="LiftCube-v0")
-    parser.add_argument(
-        "-n",
-        "--n-envs",
-        type=int,
-        default=8,
-        help="number of parallel envs to run. Note that increasing this does not increase rollout size",
-    )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        help="Random seed to initialize training with",
-    )
-    parser.add_argument(
-        "--max-episode-steps",
-        type=int,
-        default=50,
-        help="Max steps per episode before truncating them",
-    )
-    parser.add_argument(
-        "--total-timesteps",
-        type=int,
-        default=500_000,
-        help="Total timesteps for training",
-    )
-    parser.add_argument(
-        "--log-dir",
-        type=str,
-        default="logs",
-        help="path for where logs, checkpoints, and videos are saved",
-    )
-    parser.add_argument(
-        "--eval", action="store_true", help="whether to only evaluate policy"
-    )
-    parser.add_argument(
-        "--model-path", type=str, help="path to sb3 model for evaluation"
-    )
-    args = parser.parse_args()
-    return args
+from arg_parse import parse_args
+from wrapper import ContinuousTaskWrapper, SuccessInfoWrapper
 
 
 def main():
@@ -150,19 +85,31 @@ def main():
         env.reset()
 
     # Define the policy configuration and algorithm configuration
-    policy_kwargs = dict(net_arch=[256, 256])
-    model = PPO(
-        "MlpPolicy",
-        env,
-        policy_kwargs=policy_kwargs,
-        verbose=1,
-        n_steps=rollout_steps // num_envs,
-        batch_size=400,
-        gamma=0.8,
-        n_epochs=15,
-        tensorboard_log=log_dir,
-        target_kl=0.05,
-    )
+    if args.algo == "sac":  
+        policy_kwargs = dict(net_arch=[256, 256])
+        model = SAC(
+            "MlpPolicy",
+            env,
+            policy_kwargs=policy_kwargs,
+            verbose=1,
+            batch_size=400,
+            gamma=0.8,
+            tensorboard_log=log_dir,
+        )
+    elif args.algo == "ppo":
+        policy_kwargs = dict(net_arch=[256, 256])
+        model = PPO(
+            "MlpPolicy",
+            env,
+            policy_kwargs=policy_kwargs,
+            verbose=1,
+            n_steps=rollout_steps // num_envs,
+            batch_size=400,
+            gamma=0.8,
+            n_epochs=15,
+            tensorboard_log=log_dir,
+            target_kl=0.05,
+        )
 
     if args.eval:
         model_path = args.model_path
