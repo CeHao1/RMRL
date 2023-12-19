@@ -1,16 +1,17 @@
 #!/bin/bash
 
+# "PandaAvoidObstacles-v0" # not manipulation
+
 env_id=(
-    "LiftCube-v0"
-    "PickCube-v0"
-    "StackCube-v0"
-    "PickSingleYCB-v0"
-    "PickSingleEGAD-v0"
-    "PickClutterYCB-v0"
-    "AssemblingKits-v0"
+    # "LiftCube-v0"
+    # "PickCube-v0"
+    # "StackCube-v0"
+    # "PickSingleYCB-v0"
+    # "PickSingleEGAD-v0"
+    # "PickClutterYCB-v0"
+    # "AssemblingKits-v0"
     "PegInsertionSide-v0"
     "PlugCharger-v0"
-    "PandaAvoidObstacles-v0"
     "TurnFaucet-v0"
     # "OpenCabinetDoor-v1" # different control mode
     # "OpenCabinetDrawer-v1"
@@ -21,13 +22,13 @@ env_id=(
 count=0
 for env in ${env_id[@]}
 do
-    python src/run_baseline.py -e "$env" --total-timesteps 5_000_000 -n 24 --log-dir "./log/ppo_baseline/$env" &
+    python src/run_baseline.py -e "$env" --total-timesteps 5_000_000 -n 30 --log-dir "./log/ppo_baseline/$env" &
 
     # Increment the counter
     ((count++))
 
     # Every three jobs, wait for them to finish before continuing
-    if (( count % 3 == 0 )); then
+    if (( count % 1 == 0 )); then
         wait
     fi
 done
