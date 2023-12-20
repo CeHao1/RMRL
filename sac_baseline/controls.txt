@@ -1,0 +1,12 @@
+['base_pd_joint_vel_arm_pd_joint_vel', 
+'base_pd_joint_vel_arm_pd_joint_delta_pos', 
+'base_pd_joint_vel_arm_pd_joint_pos', 
+'base_pd_joint_vel_arm_pd_joint_target_delta_pos', 
+'base_pd_joint_vel_arm_pd_ee_delta_pos', 
+'base_pd_joint_vel_arm_pd_ee_delta_pose', 
+'base_pd_joint_vel_arm_pd_ee_target_delta_pos', 
+'base_pd_joint_vel_arm_pd_ee_target_delta_pose', 
+'base_pd_joint_vel_arm_pd_joint_pos_vel', 
+'base_pd_joint_vel_arm_pd_joint_delta_pos_vel']
+
+pd_ee_delta_pose

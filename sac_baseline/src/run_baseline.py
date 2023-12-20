@@ -24,8 +24,16 @@ def main():
     log_dir = args.log_dir
     rollout_steps = 4800
 
+    if len(args.model_ids) > 0:
+        print("args. model_ids: ", args.model_ids)
+
     obs_mode = "state"
-    control_mode = "pd_ee_delta_pose"
+
+    if args.control_mode == "ee":
+        control_mode = "pd_ee_delta_pose"
+    elif args.control_mode == "base":
+        control_mode = "base_pd_joint_vel_arm_pd_ee_delta_pose"
+
     reward_mode = "normalized_dense"
     if args.seed is not None:
         set_random_seed(args.seed)
@@ -39,14 +47,25 @@ def main():
             # NOTE: Import envs here so that they are registered with gym in subprocesses
             import mani_skill2.envs
 
-            env = gym.make(
-                env_id,
-                obs_mode=obs_mode,
-                reward_mode=reward_mode,
-                control_mode=control_mode,
-                render_mode="cameras",
-                max_episode_steps=max_episode_steps,
-            )
+            if len(args.model_ids) > 0:     # if model_ids is not empty, then use it
+                env = gym.make(
+                    env_id,
+                    obs_mode=obs_mode,
+                    reward_mode=reward_mode,
+                    control_mode=control_mode,
+                    render_mode="cameras",
+                    max_episode_steps=max_episode_steps,
+                    model_ids = args.model_ids,
+                )
+            else:
+                env = gym.make(
+                    env_id,
+                    obs_mode=obs_mode,
+                    reward_mode=reward_mode,
+                    control_mode=control_mode,
+                    render_mode="cameras",
+                    max_episode_steps=max_episode_steps,
+                )   
             # For training, we regard the task as a continuous task with infinite horizon.
             # you can use the ContinuousTaskWrapper here for that
             if max_episode_steps is not None:
