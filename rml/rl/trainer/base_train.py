@@ -16,7 +16,7 @@ def train(args):
 
     # train
     model.learn(
-        total_timesteps=args.rollout_steps,
+        total_timesteps=args.total_timesteps,
         callback=[eval_callback, checkpoint_callback],
     )
 

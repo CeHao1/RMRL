@@ -11,7 +11,7 @@ from stable_baselines3.common.vec_env import SubprocVecEnv, VecMonitor
 import mani_skill2.envs
 from mani_skill2.utils.wrappers import RecordEpisode
 
-from rml.envs.wrapper import ContinuousTaskWrapper, SuccessInfoWrapper
+from wrapper import ContinuousTaskWrapper, SuccessInfoWrapper
 
 
 def base_env(args):
