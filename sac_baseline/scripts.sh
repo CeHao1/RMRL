@@ -5,7 +5,7 @@
 env_id=(
     # "LiftCube-v0"
     # "PickCube-v0"
-    # "StackCube-v0"
+    # "StackCube-v0"c
     # "PickSingleYCB-v0"
     # "PickSingleEGAD-v0"
     # "PickClutterYCB-v0"
@@ -36,6 +36,7 @@ env_id=(
 # Wait for the last set of jobs if they don't make a complete group of three
 # wait
 
+python src/run_baseline.py -e "StackCube-v0" --total-timesteps 10_000_000 -n 30 --algo "sac" --log-dir "./log/sac_baseline/StackCube-v0" --eval
 
 
 # python src/run_baseline.py -e "OpenCabinetDoor-v1" --total-timesteps 5_000_000 -n 30 --algo "sac" --log-dir "./log/sac_baseline/OpenCabinetDoor-v1" \

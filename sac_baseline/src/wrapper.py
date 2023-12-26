@@ -1,5 +1,5 @@
 import gymnasium as gym
-
+import numpy as np
 
 # Defines a continuous, infinite horizon, task where terminated is always False
 # unless a timelimit is reached.
@@ -22,3 +22,16 @@ class SuccessInfoWrapper(gym.Wrapper):
         info["is_success"] = info["success"]
         return ob, rew, terminated, truncated, info
 
+class ActionNoiseWrapper(gym.Wrapper):
+
+    def __init__(self, env, noise_fun):
+        super().__init__(env)
+        self.noise_fun = noise_fun
+
+    def step(self, action):
+        noise = self.noise_fun(action)
+        action_noise = action + noise
+        return self.env.step(action_noise)
+    
+def uniform_noise_fun(action):
+    return np.random.normal(0, 0.3, action.shape)
