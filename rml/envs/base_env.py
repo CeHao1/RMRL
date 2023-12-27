@@ -11,7 +11,7 @@ from stable_baselines3.common.vec_env import SubprocVecEnv, VecMonitor
 import mani_skill2.envs
 from mani_skill2.utils.wrappers import RecordEpisode
 
-from rml.envs.wrapper import ContinuousTaskWrapper, SuccessInfoWrapper
+from rml.envs.wrapper import ContinuousTaskWrapper, SuccessInfoWrapper, ActionNoiseWrapper, GaussianNoise
 
 
 def base_env(args):
@@ -70,6 +70,9 @@ def base_env(args):
             if record_dir is not None:
                 env = SuccessInfoWrapper(env)
                 env = RecordEpisode(env, record_dir, info_on_video=True)
+
+            noise_fun = GaussianNoise(0, 0.3, shape=env.action_space.shape)
+            env = ActionNoiseWrapper(env, noise_fun)
             return env
 
         return _init

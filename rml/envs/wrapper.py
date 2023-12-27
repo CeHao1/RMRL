@@ -30,8 +30,25 @@ class ActionNoiseWrapper(gym.Wrapper):
 
     def step(self, action):
         noise = self.noise_fun(action)
+        # print("noise: ", noise)
         action_noise = action + noise
         return self.env.step(action_noise)
+
+
+class GaussianNoise:
+
+    def __init__(self, mu, sig, shape=None):
+        self.mu = mu
+        self.sig = sig
+        self.shape = shape
+
+    def __call__(self, variable):
+        if self.shape is None:
+            shape = variable.shape
+        else:
+            shape = self.shape
+        return np.random.normal(self.mu, self.sig, shape)
     
-def uniform_noise_fun(action):
-    return np.random.normal(0, 0.3, action.shape)
+    property
+    def shape(self):
+        return self.shape

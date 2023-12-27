@@ -39,7 +39,7 @@ def train(args):
     print('========== setup actor ==========')
 
 
-
+    # '''
     if not args.eval:
         # train
         model.learn(
@@ -49,6 +49,7 @@ def train(args):
 
         # save model
         model.save(args.log_dir + "/latest_model")
+    # '''
 
     '''
     # evaluate
