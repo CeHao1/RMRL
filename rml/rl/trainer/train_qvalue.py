@@ -30,8 +30,15 @@ def train(args):
         args, env, eval_env, args.log_dir, args.rollout_steps, args.n_envs)
     print('========== load q value model ==========')
 
+
+
+    policy_model.actor.name = 'base policy'
+    model.actor.name = 'q value model'
+
     model.setup_actor(policy_model.actor)
     print('========== setup actor ==========')
+
+
 
     if not args.eval:
         # train
@@ -42,6 +49,24 @@ def train(args):
 
         # save model
         model.save(args.log_dir + "/latest_model")
+
+    '''
+    # evaluate
+    returns, ep_lens = evaluate_policy(
+        model,
+        eval_env,
+        deterministic=True,
+        render=False,
+        return_episode_rewards=True,
+        n_eval_episodes=10,
+    )
+    print("Returns", returns)
+    print("Episode Lengths", ep_lens)
+    success = np.array(ep_lens) < 200
+    success_rate = success.mean()
+    print("Success Rate:", success_rate)
+    '''
+
 
     # close env
     env.close()

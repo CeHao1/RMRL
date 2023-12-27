@@ -91,7 +91,7 @@ class Sensitive(OffPolicyAlgorithm):
             self._setup_model()
     
     def setup_actor(self, external_actor):
-        self.actor = external_actor
+        self.policy.actor = external_actor
         print("========== set external actor ==========")
 
     def _setup_model(self) -> None:
@@ -177,7 +177,7 @@ class Sensitive(OffPolicyAlgorithm):
         self._n_updates += gradient_steps
 
         self.logger.record("train/n_updates", self._n_updates, exclude="tensorboard")
-        self.logger.record("train/actor_loss", np.mean(actor_losses))
+        # self.logger.record("train/actor_loss", np.mean(actor_losses))
         self.logger.record("train/critic_loss", np.mean(critic_losses))
 
 
@@ -186,7 +186,7 @@ class Sensitive(OffPolicyAlgorithm):
         total_timesteps: int,
         callback: MaybeCallback = None,
         log_interval: int = 4,
-        tb_log_name: str = "SAC",
+        tb_log_name: str = "SEN",
         reset_num_timesteps: bool = True,
         progress_bar: bool = False,
     ) -> SelfSensitive:
@@ -203,10 +203,11 @@ class Sensitive(OffPolicyAlgorithm):
         return super()._excluded_save_params() + ["actor", "critic", "critic_target"]  # noqa: RUF005
 
     def _get_torch_save_params(self) -> Tuple[List[str], List[str]]:
-        state_dicts = ["policy", "actor.optimizer", "critic.optimizer"]
-        if self.ent_coef_optimizer is not None:
-            saved_pytorch_variables = ["log_ent_coef"]
-            state_dicts.append("ent_coef_optimizer")
-        else:
-            saved_pytorch_variables = ["ent_coef_tensor"]
+        state_dicts = ["policy",  "critic.optimizer"]
+        saved_pytorch_variables = []
+        # if self.ent_coef_optimizer is not None:
+        #     saved_pytorch_variables = ["log_ent_coef"]
+        #     state_dicts.append("ent_coef_optimizer")
+        # else:
+        #     saved_pytorch_variables = ["ent_coef_tensor"]
         return state_dicts, saved_pytorch_variables
