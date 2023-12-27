@@ -7,8 +7,9 @@ import numpy as np
 from stable_baselines3.common import type_aliases
 from stable_baselines3.common.vec_env import DummyVecEnv, VecEnv, VecMonitor, is_vecenv_wrapped
 
+import torch as th
 
-def evaluate_policy(
+def evaluate_policy_for_q(
     model: "type_aliases.PolicyPredictor",
     env: Union[gym.Env, VecEnv],
     n_eval_episodes: int = 10,
@@ -74,6 +75,7 @@ def evaluate_policy(
     n_envs = env.num_envs
     episode_rewards = []
     episode_lengths = []
+    
 
     episode_counts = np.zeros(n_envs, dtype="int")
     # Divides episodes among different sub environments in the vector as evenly as possible
@@ -92,6 +94,13 @@ def evaluate_policy(
             deterministic=deterministic,
         )
         new_observations, rewards, dones, infos = env.step(actions)
+
+        # process q
+        obs_torch = th.tensor(observations, device=model.device)
+        actions_torch = th.tensor(actions, device=model.device)
+        current_q_values = model.critic(obs_torch, actions_torch)[0].cpu().detach().numpy()
+        current_q_value = current_q_values[0,0]
+
         current_rewards += rewards
         current_lengths += 1
         for i in range(n_envs):

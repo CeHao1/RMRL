@@ -110,7 +110,7 @@ class Sensitive(OffPolicyAlgorithm):
         # Switch to train mode (this affects batch norm / dropout)
         self.policy.set_training_mode(True)
         # Update optimizers learning rate
-        optimizers = [self.actor.optimizer, self.critic.optimizer]
+        optimizers = [self.critic.optimizer]
 
         # Update learning rate according to lr schedule
         self._update_learning_rate(optimizers)
