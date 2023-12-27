@@ -1,8 +1,11 @@
 
 import os.path as osp
-from stable_baselines3 import PPO, SAC
+from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import CheckpointCallback, EvalCallback
 from stable_baselines3.common.evaluation import evaluate_policy
+
+from rml.rl.agents.sensitive import Sensitive
+from rml.rl.agents.sac import SAC
 
 def build_rl(args, env, eval_env, log_dir, rollout_steps, num_envs):
     # Define the policy configuration and algorithm configuration
@@ -31,13 +34,24 @@ def build_rl(args, env, eval_env, log_dir, rollout_steps, num_envs):
             tensorboard_log=log_dir,
             target_kl=0.05,
         )
+    elif args.algo == "sen":
+        policy_kwargs = dict(net_arch=[256, 256])
+        model = Sensitive(
+            "MlpPolicy",
+            env,
+            policy_kwargs=policy_kwargs,
+            verbose=1,
+            batch_size=400,
+            gamma=0.8,
+            tensorboard_log=log_dir,
+        )
 
-    if args.eval:
+    if args.eval or args.model_path is not None:
         model_path = args.model_path
         if model_path is None:
             model_path = osp.join(log_dir, "latest_model")
         # Load the saved model
-        model = model.load(model_path)
+        model = model.load(model_path, env=env)
     # else:
     # define callbacks to periodically save our model and evaluate it to help monitor training
     # the below freq values will save every 10 rollouts

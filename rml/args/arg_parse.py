@@ -55,7 +55,7 @@ def parse_args():
     parser.add_argument(
         "--algo",
         type=str,
-        choices=["ppo", "sac"],
+        choices=["ppo", "sac", 'sen'],
         default="ppo",
         help="RL algorithm to use",
     )
