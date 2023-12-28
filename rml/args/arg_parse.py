@@ -67,6 +67,14 @@ def parse_args():
         help="control mode to use",
     )
     parser.add_argument(
+        "--reward-mode",
+        type=str,
+        choices=["dense", "sparse", "normalized_dense"],
+        default="normalized_dense",
+        help="reward mode to use",
+    )
+
+    parser.add_argument(
         "--eval", action="store_true", help="whether to only evaluate policy"
     )
     parser.add_argument(
@@ -78,6 +86,13 @@ def parse_args():
         type=parse_list,
         default="[]",
         help="list of model ids to evaluate",
+    )
+
+    parser.add_argument(
+        "--noise_std",
+        type=float,
+        default=0.0,
+        help="noise std for action noise",
     )
 
     args = parser.parse_args()

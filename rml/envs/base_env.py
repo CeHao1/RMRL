@@ -31,7 +31,7 @@ def base_env(args):
     elif args.control_mode == "base":
         control_mode = "base_pd_joint_vel_arm_pd_ee_delta_pose"
 
-    reward_mode = "normalized_dense"
+    reward_mode = args.reward_mode
     if args.seed is not None:
         set_random_seed(args.seed)
 
@@ -71,8 +71,10 @@ def base_env(args):
                 env = SuccessInfoWrapper(env)
                 env = RecordEpisode(env, record_dir, info_on_video=True)
 
-            # noise_fun = GaussianNoise(0, 0.3, shape=env.action_space.shape)
-            # env = ActionNoiseWrapper(env, noise_fun)
+            if args.noise_std > 0:
+                print("===================== add noise to action ", args.noise_std)
+                noise_fun = GaussianNoise(0, args.noise_std, shape=env.action_space.shape)
+                env = ActionNoiseWrapper(env, noise_fun)
             return env
 
         return _init

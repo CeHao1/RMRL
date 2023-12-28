@@ -75,7 +75,7 @@ def evaluate_policy_for_q(
     n_envs = env.num_envs
     episode_rewards = []
     episode_lengths = []
-    
+    episode_qvalue = {'mean':[], 'std':[]}
 
     episode_counts = np.zeros(n_envs, dtype="int")
     # Divides episodes among different sub environments in the vector as evenly as possible
@@ -98,8 +98,10 @@ def evaluate_policy_for_q(
         # process q
         obs_torch = th.tensor(observations, device=model.device)
         actions_torch = th.tensor(actions, device=model.device)
-        current_q_values = model.critic(obs_torch, actions_torch)[0].cpu().detach().numpy()
-        current_q_value = current_q_values[0,0]
+        # shape tuple (2, x)
+        qvalue, qvalue_mean, qvalue_std = model.critic.get_q_dist(obs_torch, actions_torch)
+        episode_qvalue['mean'].append(tensor_to_numpy(qvalue_mean[0].squeeze()))
+        episode_qvalue['std'].append(tensor_to_numpy(qvalue_std[0].squeeze()))
 
         current_rewards += rewards
         current_lengths += 1
@@ -131,8 +133,14 @@ def evaluate_policy_for_q(
                         episode_rewards.append(current_rewards[i])
                         episode_lengths.append(current_lengths[i])
                         episode_counts[i] += 1
+                        episode_qvalue = {'mean':[], 'std':[]}
                     current_rewards[i] = 0
                     current_lengths[i] = 0
+
+                    # check qvalue
+                    print("======="*5)
+                    # print('qvalue mean: ', np.array(episode_qvalue['mean']))
+                    # print('qvalue std: ', np.array(episode_qvalue['std']))
 
         observations = new_observations
 
@@ -146,3 +154,9 @@ def evaluate_policy_for_q(
     if return_episode_rewards:
         return episode_rewards, episode_lengths
     return mean_reward, std_reward
+
+
+def tensor_to_numpy(arr):
+    if isinstance(arr, th.Tensor):
+        return arr.detach().cpu().numpy()
+    return arr

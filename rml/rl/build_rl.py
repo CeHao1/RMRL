@@ -42,7 +42,7 @@ def build_rl(args, env, eval_env, log_dir, rollout_steps, num_envs):
             policy_kwargs=policy_kwargs,
             verbose=1,
             batch_size=400,
-            gamma=0.8,
+            gamma=1,
             tensorboard_log=log_dir,
         )
 

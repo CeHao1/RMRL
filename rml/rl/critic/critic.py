@@ -126,17 +126,24 @@ class DistributionalCritic(BaseModel):
         self.add_module(f"qf{idx}", q_net)
         return q_net
 
-    def forward(self, obs: th.Tensor, actions: th.Tensor) -> Tuple[th.Tensor, ...]:
+    def forward(self, obs: th.Tensor, actions: th.Tensor, determinstic=False) -> Tuple[th.Tensor, ...]:
         # Learn the features extractor using the policy loss only
         # when the features_extractor is shared with the actor
         with th.set_grad_enabled(not self.share_features_extractor):
             features = self.extract_features(obs, self.features_extractor)
         qvalue_input = th.cat([features, actions], dim=1)
-        qvalue = tuple( self._sample_q_value(q_net(qvalue_input)) for q_net in self.q_networks)
 
-
+        qvalue = ()
+        for q_net in self.q_networks:
+            qvalues = q_net(qvalue_input)
+            qvalue_sample, q_mean, q_std = self._sample_q_value(qvalues)
+            if determinstic:
+                qvalue += (q_mean, )
+            else:
+                qvalue += (qvalue_sample, )
         return qvalue
-    
+
+
     def _sample_q_value(self, qvalues):
         q_mean = qvalues[:, 0:1]
         q_log_std = qvalues[:, 1:2]
@@ -144,11 +151,20 @@ class DistributionalCritic(BaseModel):
         q_std = th.ones_like(q_mean) * q_log_std.exp()
         dist = th.distributions.Normal(q_mean, q_std)
         qvalue = dist.rsample()
-        return qvalue
+        return qvalue, q_mean, q_std
     
     def get_q_dist(self, obs: th.Tensor, actions: th.Tensor) -> Tuple[th.Tensor, ...]:
         with th.set_grad_enabled(not self.share_features_extractor):
             features = self.extract_features(obs, self.features_extractor)
         qvalue_input = th.cat([features, actions], dim=1)
-        qvalue = tuple(q_net(qvalue_input) for q_net in self.q_networks)
-        return qvalue
+
+        qvalue_mean = ()
+        qvalue_std = ()
+        qvalue = ()
+        for q_net in self.q_networks:
+            qvalues = q_net(qvalue_input)
+            qvalue_sample, q_mean, q_std = self._sample_q_value(qvalues)
+            qvalue_mean += (q_mean, )
+            qvalue_std += (q_std, )
+            qvalue += (qvalue_sample, )
+        return qvalue, qvalue_mean, qvalue_std

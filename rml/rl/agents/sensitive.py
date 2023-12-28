@@ -136,7 +136,7 @@ class Sensitive(OffPolicyAlgorithm):
                 # Select action according to policy
                 next_actions, next_log_prob = self.actor.action_log_prob(replay_data.next_observations)
                 # Compute the next Q values: min over all critics targets
-                next_q_values = th.cat(self.critic_target(replay_data.next_observations, next_actions), dim=1)
+                next_q_values = th.cat(self.critic_target(replay_data.next_observations, next_actions, determinstic=True), dim=1)
                 next_q_values, _ = th.min(next_q_values, dim=1, keepdim=True)
 
                 # td error + entropy term
