@@ -192,7 +192,7 @@ class SACPolicy(BasePolicy):
 
     def make_critic(self, features_extractor: Optional[BaseFeaturesExtractor] = None) -> ContinuousCritic:
         critic_kwargs = self._update_features_extractor(self.critic_kwargs, features_extractor)
-        return ContinuousCritic(**critic_kwargs).to(self.device)
+        return self.critic_type(**critic_kwargs).to(self.device)
 
     def forward(self, obs: PyTorchObs, deterministic: bool = False) -> th.Tensor:
         return self._predict(obs, deterministic=deterministic)
@@ -212,7 +212,14 @@ class SACPolicy(BasePolicy):
         self.critic.set_training_mode(mode)
         self.training = mode
 
+    @property
+    def critic_type(self) -> Type[ContinuousCritic]:
+        return ContinuousCritic
 
 class DistSACPolicy(SACPolicy):
     critic: DistributionalCritic
     critic_target: DistributionalCritic
+
+    @property
+    def critic_type(self) -> Type[DistributionalCritic]:
+        return DistributionalCritic

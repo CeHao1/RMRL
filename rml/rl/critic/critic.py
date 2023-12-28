@@ -124,6 +124,7 @@ class DistributionalCritic(BaseModel):
         q_net_list = create_mlp(features_dim + action_dim, 2, net_arch, activation_fn)
         q_net = nn.Sequential(*q_net_list)
         self.add_module(f"qf{idx}", q_net)
+        return q_net
 
     def forward(self, obs: th.Tensor, actions: th.Tensor) -> Tuple[th.Tensor, ...]:
         # Learn the features extractor using the policy loss only
@@ -131,5 +132,23 @@ class DistributionalCritic(BaseModel):
         with th.set_grad_enabled(not self.share_features_extractor):
             features = self.extract_features(obs, self.features_extractor)
         qvalue_input = th.cat([features, actions], dim=1)
-        qvalue = tuple(q_net(qvalue_input[:, :1]) for q_net in self.q_networks)
+        qvalue = tuple( self._sample_q_value(q_net(qvalue_input)) for q_net in self.q_networks)
+
+
+        return qvalue
+    
+    def _sample_q_value(self, qvalues):
+        q_mean = qvalues[:, 0:1]
+        q_log_std = qvalues[:, 1:2]
+
+        q_std = th.ones_like(q_mean) * q_log_std.exp()
+        dist = th.distributions.Normal(q_mean, q_std)
+        qvalue = dist.rsample()
+        return qvalue
+    
+    def get_q_dist(self, obs: th.Tensor, actions: th.Tensor) -> Tuple[th.Tensor, ...]:
+        with th.set_grad_enabled(not self.share_features_extractor):
+            features = self.extract_features(obs, self.features_extractor)
+        qvalue_input = th.cat([features, actions], dim=1)
+        qvalue = tuple(q_net(qvalue_input) for q_net in self.q_networks)
         return qvalue
