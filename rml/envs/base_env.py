@@ -71,8 +71,8 @@ def base_env(args):
                 env = SuccessInfoWrapper(env)
                 env = RecordEpisode(env, record_dir, info_on_video=True)
 
-            noise_fun = GaussianNoise(0, 0.3, shape=env.action_space.shape)
-            env = ActionNoiseWrapper(env, noise_fun)
+            # noise_fun = GaussianNoise(0, 0.3, shape=env.action_space.shape)
+            # env = ActionNoiseWrapper(env, noise_fun)
             return env
 
         return _init
