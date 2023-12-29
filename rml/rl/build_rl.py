@@ -42,8 +42,9 @@ def build_rl(args, env, eval_env, log_dir, rollout_steps, num_envs):
             policy_kwargs=policy_kwargs,
             verbose=1,
             batch_size=400,
-            gamma=1,
+            gamma=0.99,
             tensorboard_log=log_dir,
+            learning_rate = 1e-3,
         )
 
     if args.eval or args.model_path is not None:

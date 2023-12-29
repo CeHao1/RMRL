@@ -12,7 +12,7 @@ from stable_baselines3.common.evaluation import evaluate_policy
 import numpy as np
 
 def train(args):    
-    
+    args.max_episode_steps = None
     # build env
     env, eval_env = base_env(args)
 

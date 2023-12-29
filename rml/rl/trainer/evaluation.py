@@ -117,6 +117,11 @@ def evaluate_policy_for_q(
                     callback(locals(), globals())
 
                 if dones[i]:
+                    # check qvalue
+                    print("======="*5)
+                    print('qvalue mean: ', np.array(episode_qvalue['mean']))
+                    print('qvalue std: ', np.array(episode_qvalue['std']))
+
                     if is_monitor_wrapped:
                         # Atari wrapper can send a "done" signal when
                         # the agent loses a life, but it does not correspond
@@ -133,14 +138,12 @@ def evaluate_policy_for_q(
                         episode_rewards.append(current_rewards[i])
                         episode_lengths.append(current_lengths[i])
                         episode_counts[i] += 1
-                        episode_qvalue = {'mean':[], 'std':[]}
+                        
                     current_rewards[i] = 0
                     current_lengths[i] = 0
+                    episode_qvalue = {'mean':[], 'std':[]}
 
-                    # check qvalue
-                    print("======="*5)
-                    # print('qvalue mean: ', np.array(episode_qvalue['mean']))
-                    # print('qvalue std: ', np.array(episode_qvalue['std']))
+                    
 
         observations = new_observations
 

@@ -76,7 +76,7 @@ class ContinuousCritic(BaseModel):
             self.add_module(f"qf{idx}", q_net)
             self.q_networks.append(q_net)
 
-    def forward(self, obs: th.Tensor, actions: th.Tensor) -> Tuple[th.Tensor, ...]:
+    def forward(self, obs: th.Tensor, actions: th.Tensor, determinstic=False) -> Tuple[th.Tensor, ...]:
         # Learn the features extractor using the policy loss only
         # when the features_extractor is shared with the actor
         with th.set_grad_enabled(not self.share_features_extractor):

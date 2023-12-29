@@ -183,6 +183,13 @@ class Sensitive(OffPolicyAlgorithm):
         # self.logger.record("train/actor_loss", np.mean(actor_losses))
         self.logger.record("train/critic_loss", np.mean(critic_losses))
 
+        cur_qvalue_mean = np.mean([cur_q.mean().item() for cur_q in current_q_values])
+        tar_qvalue_mean = np.mean([tar_q.mean().item() for tar_q in target_q_values])
+        reward_mean = np.mean([rew.mean().item() for rew in replay_data.rewards])
+        self.logger.record("train/current_q_value", cur_qvalue_mean)
+        self.logger.record("train/target_qvalue", tar_qvalue_mean)
+        self.logger.record("train/reward", reward_mean)
+
 
     def learn(
         self: SelfSensitive,
