@@ -136,7 +136,7 @@ class DistributionalCritic(BaseModel):
         qvalue = ()
         for q_net in self.q_networks:
             qvalues = q_net(qvalue_input)
-            qvalue_sample, q_mean, q_std = self._sample_q_value(qvalues)
+            qdist, qvalue_sample, q_mean, q_std = self._sample_q_value(qvalues)
             if determinstic:
                 qvalue += (q_mean, )
             else:
@@ -149,22 +149,25 @@ class DistributionalCritic(BaseModel):
         q_log_std = qvalues[:, 1:2]
 
         q_std = th.ones_like(q_mean) * q_log_std.exp()
+        q_std = th.clamp(q_std, min=1e-6, max=1e6)
         dist = th.distributions.Normal(q_mean, q_std)
         qvalue = dist.rsample()
-        return qvalue, q_mean, q_std
+        return dist, qvalue, q_mean, q_std
     
     def get_q_dist(self, obs: th.Tensor, actions: th.Tensor) -> Tuple[th.Tensor, ...]:
         with th.set_grad_enabled(not self.share_features_extractor):
             features = self.extract_features(obs, self.features_extractor)
         qvalue_input = th.cat([features, actions], dim=1)
 
+        qvalue_dist = ()
         qvalue_mean = ()
         qvalue_std = ()
         qvalue = ()
         for q_net in self.q_networks:
             qvalues = q_net(qvalue_input)
-            qvalue_sample, q_mean, q_std = self._sample_q_value(qvalues)
+            qdist, qvalue_sample, q_mean, q_std = self._sample_q_value(qvalues)
+            qvalue_dist += (qdist, )
             qvalue_mean += (q_mean, )
             qvalue_std += (q_std, )
             qvalue += (qvalue_sample, )
-        return qvalue, qvalue_mean, qvalue_std
+        return qvalue_dist, qvalue, qvalue_mean, qvalue_std

@@ -142,12 +142,29 @@ class Sensitive(OffPolicyAlgorithm):
                 # td error + entropy term
                 target_q_values = replay_data.rewards + (1 - replay_data.dones) * self.gamma * next_q_values
 
+            '''
             # Get current Q-values estimates for each critic network
             # using action from the replay buffer
             current_q_values = self.critic(replay_data.observations, replay_data.actions)
-
+                
             # Compute critic loss
             critic_loss = 0.5 * sum(F.mse_loss(current_q, target_q_values) for current_q in current_q_values)
+            
+            '''
+
+            '''
+            New method to calculate critic loss
+            '''
+            qvalue_dist, qvalue, qvalue_mean, qvalue_std = self.critic.get_q_dist(replay_data.observations, replay_data.actions)
+            # critic_loss = np.mean(-cur_qdist.log_prob(target_q_values).mean() for cur_qdist in qvalue_dist)
+
+            store = ()
+            for cur_qdist in qvalue_dist:
+                l = -cur_qdist.log_prob(target_q_values)
+                lm = l.mean()
+                store += (lm, )
+            critic_loss = th.mean(th.stack(store))
+
             assert isinstance(critic_loss, th.Tensor)  # for type checker
             critic_losses.append(critic_loss.item())  # type: ignore[union-attr]
 
@@ -183,10 +200,12 @@ class Sensitive(OffPolicyAlgorithm):
         # self.logger.record("train/actor_loss", np.mean(actor_losses))
         self.logger.record("train/critic_loss", np.mean(critic_losses))
 
-        cur_qvalue_mean = np.mean([cur_q.mean().item() for cur_q in current_q_values])
+        cur_qvalue_mean = np.mean([cur_q.mean().item() for cur_q in qvalue_mean])
+        cur_qvalue_std = np.mean([cur_q.mean().item() for cur_q in qvalue_std])
         tar_qvalue_mean = np.mean([tar_q.mean().item() for tar_q in target_q_values])
         reward_mean = np.mean([rew.mean().item() for rew in replay_data.rewards])
         self.logger.record("train/current_q_value", cur_qvalue_mean)
+        self.logger.record("train/current_q_std", cur_qvalue_std)
         self.logger.record("train/target_qvalue", tar_qvalue_mean)
         self.logger.record("train/reward", reward_mean)
 

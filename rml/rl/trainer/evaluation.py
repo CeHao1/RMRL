@@ -99,7 +99,7 @@ def evaluate_policy_for_q(
         obs_torch = th.tensor(observations, device=model.device)
         actions_torch = th.tensor(actions, device=model.device)
         # shape tuple (2, x)
-        qvalue, qvalue_mean, qvalue_std = model.critic.get_q_dist(obs_torch, actions_torch)
+        qvalue_dist, qvalue, qvalue_mean, qvalue_std = model.critic.get_q_dist(obs_torch, actions_torch)
         episode_qvalue['mean'].append(tensor_to_numpy(qvalue_mean[0].squeeze()))
         episode_qvalue['std'].append(tensor_to_numpy(qvalue_std[0].squeeze()))
 
@@ -119,8 +119,10 @@ def evaluate_policy_for_q(
                 if dones[i]:
                     # check qvalue
                     print("======="*5)
-                    print('qvalue mean: ', np.array(episode_qvalue['mean']))
-                    print('qvalue std: ', np.array(episode_qvalue['std']))
+                    # print('qvalue mean: ', np.array(episode_qvalue['mean']))
+                    # print('qvalue std: ', np.array(episode_qvalue['std']))
+
+                    np.savez('./log/qvalue_plot/qvalue_{}.npz'.format(episode_counts[i]), **episode_qvalue)
 
                     if is_monitor_wrapped:
                         # Atari wrapper can send a "done" signal when
