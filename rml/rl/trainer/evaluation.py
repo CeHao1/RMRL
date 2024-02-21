@@ -76,6 +76,7 @@ def evaluate_policy_for_q(
     episode_rewards = []
     episode_lengths = []
     episode_qvalue = {'mean':[], 'std':[]}
+    replay = {'obs':[], 'act':[]}
 
     episode_counts = np.zeros(n_envs, dtype="int")
     # Divides episodes among different sub environments in the vector as evenly as possible
@@ -94,6 +95,9 @@ def evaluate_policy_for_q(
             deterministic=deterministic,
         )
         new_observations, rewards, dones, infos = env.step(actions)
+
+        replay['obs'].append(observations)
+        replay['act'].append(actions)
 
         # process q
         obs_torch = th.tensor(observations, device=model.device)
@@ -123,6 +127,7 @@ def evaluate_policy_for_q(
                     # print('qvalue std: ', np.array(episode_qvalue['std']))
 
                     np.savez('./log/qvalue_plot/qvalue_{}.npz'.format(episode_counts[i]), **episode_qvalue)
+                    np.savez('./log/qvalue_plot/replay_{}.npz'.format(episode_counts[i]), **replay)
 
                     if is_monitor_wrapped:
                         # Atari wrapper can send a "done" signal when
@@ -144,6 +149,7 @@ def evaluate_policy_for_q(
                     current_rewards[i] = 0
                     current_lengths[i] = 0
                     episode_qvalue = {'mean':[], 'std':[]}
+                    replay = {'obs':[], 'act':[]}
 
                     
 
